@@ -1,75 +1,68 @@
 package com.ultratv.tv.nativeapp.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.tv.material3.ListItem
-import androidx.tv.material3.ListItemDefaults
+import androidx.tv.material3.Button
+import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 
-private data class NavItem(val route: String, val label: String, val icon: String)
+private data class TopBarItem(val route: String, val label: String, val icon: String)
 
 private val items = listOf(
-    NavItem("home", "Home", "🏠"),
-    NavItem("live", "Live TV", "📺"),
-    NavItem("guide", "Guide", "🗓"),
-    NavItem("movies", "Movies", "🎬"),
-    NavItem("series", "Series", "📚"),
-    NavItem("favorites", "Favorites", "★"),
-    NavItem("search", "Search", "🔍"),
-    NavItem("categories", "Categories", "🏷"),
-    NavItem("multiview", "Multi-View", "▦"),
-    NavItem("settings", "Settings", "⚙"),
+    TopBarItem("home", "Home", "🏠"),
+    TopBarItem("live", "Live", "📺"),
+    TopBarItem("guide", "Guide", "🗓"),
+    TopBarItem("movies", "Movies", "🎬"),
+    TopBarItem("series", "Series", "📚"),
+    TopBarItem("favorites", "Favorites", "★"),
+    TopBarItem("search", "Search", "🔍"),
+    TopBarItem("categories", "Categories", "🏷"),
+    TopBarItem("multiview", "Multi-View", "▦"),
+    TopBarItem("settings", "Settings", "⚙"),
 )
 
 @androidx.tv.material3.ExperimentalTvMaterial3Api
 @Composable
-fun SidebarNav(navController: NavController) {
+fun TopBarNav(navController: NavController) {
     val current by navController.currentBackStackEntryAsState()
     val route = current?.destination?.route ?: "home"
 
-    // Wrap items in a scrollable column — TV remotes auto-scroll a verticalScroll
-    // container when focus moves below the visible area. Without this, items past
-    // the screen are unreachable.
-    Column(
+    Row(
         Modifier
-            .fillMaxHeight()
-            .width(220.dp)
+            .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .verticalScroll(rememberScrollState())
-            .padding(PaddingValues(horizontal = 10.dp, vertical = 18.dp)),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .horizontalScroll(rememberScrollState())
+            .padding(PaddingValues(horizontal = 16.dp, vertical = 10.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             "Ultra TV",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            fontSize = 22.sp,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            fontSize = 20.sp,
+            modifier = Modifier.padding(end = 16.dp),
         )
-        Spacer(Modifier.height(8.dp))
         items.forEach { item ->
             val selected = isSelected(route, item.route)
-            ListItem(
-                selected = selected,
+            Button(
                 onClick = {
                     if (route != item.route) {
                         navController.navigate(item.route) {
@@ -79,17 +72,20 @@ fun SidebarNav(navController: NavController) {
                         }
                     }
                 },
-                headlineContent = { Text(item.label, fontSize = 16.sp) },
-                leadingContent = { Text(item.icon, fontSize = 18.sp) },
-                shape = ListItemDefaults.shape(shape = RoundedCornerShape(10.dp)),
-            )
+                shape = ButtonDefaults.shape(RoundedCornerShape(20.dp)),
+                colors = if (selected) ButtonDefaults.colors()
+                else ButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+            ) {
+                Text("${item.icon}  ${item.label}", fontSize = 14.sp)
+            }
         }
     }
 }
 
 private fun isSelected(route: String, candidate: String): Boolean = when {
     route == candidate -> true
-    candidate == "live" && (route.startsWith("player")) -> true
+    candidate == "live" && route.startsWith("player") -> true
     candidate == "movies" && route.startsWith("movies/") -> true
     candidate == "series" && route.startsWith("series/") -> true
     else -> false
