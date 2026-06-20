@@ -55,45 +55,6 @@ class AlphaHostingTvApp : Application(), ImageLoaderFactory, Configuration.Provi
 
     override fun onCreate() {
         super.onCreate()
-
-        // Tell RemoteLog who we are before anyone calls it.
-        val pkg = packageManager.getPackageInfo(packageName, 0)
-        @Suppress("DEPRECATION")
-        RemoteLog.init(
-            ctx = this,
-            mac = deviceMac.mac,
-            versionName = pkg.versionName ?: "",
-            versionCode = pkg.versionCode,
-        )
-        RemoteLog.info("app", "onCreate")
-
-        // Mirror the telemetry toggle from DataStore into RemoteLog's volatile
-        // flag so disabling it from Settings takes effect immediately for
-        // every subsequent event/crash POST.
-        bgScope.launch {
-            prefsStore.flow.collect { p ->
-                RemoteLog.telemetryEnabled = p.telemetryEnabled
-                com.alphahostingtv.tv.ui.common.EpgClock.offsetMinutes = p.epgTimeOffsetMin
-                com.alphahostingtv.tv.data.repo.LocalLogos.treeUri = p.localLogosFolderUri
-            }
-        }
-
-        // Pipe every uncaught crash straight to the worker. crashSync blocks
-        // briefly (≤ 3 s) so the request actually leaves the device before the
-        // process is replaced by the system death dialog. The previous handler
-        // (if any) is invoked afterwards so the OS still gets to log + kill.
-        val previous = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { t, e ->
-            RemoteLog.crashSync(t, e)
-            previous?.uncaughtException(t, e)
-        }
-
-        // Initialise the Cast SDK eagerly so the first time the player asks
-        // for CastContext.getSharedInstance() it doesn't block. We swallow the
-        // exception when Google Play Services are absent (some Android TV
-        // builds strip them) — the player will just not show the Cast button.
-        runCatching {
-            com.google.android.gms.cast.framework.CastContext.getSharedInstance(this) { it.run() }
         }
     }
 
