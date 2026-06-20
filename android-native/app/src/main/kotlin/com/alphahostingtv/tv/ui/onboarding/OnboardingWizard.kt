@@ -111,7 +111,7 @@ class OnboardingViewModel @Inject constructor(
                 _completed.value = true
             } catch (t: Throwable) {
                 _message.value = when {
-                    t is SecurityException -> "Login failed: ${t.message ?: \"Invalid username or password.\"}"
+                    t is SecurityException -> "Login failed: ${t.message ?: "Invalid username or password."}"
                     t is SocketTimeoutException -> "Login timed out while reaching Alpha Hosting TV. Try again on a faster network."
                     t is java.io.IOException -> "Could not reach Alpha Hosting TV server. Check internet or server URL."
                     else -> "Could not add login: ${t.message ?: t.javaClass.simpleName}"
