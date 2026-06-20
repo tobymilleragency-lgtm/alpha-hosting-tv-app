@@ -82,10 +82,15 @@ class OnboardingViewModel @Inject constructor(
     private val _completed = MutableStateFlow(false)
     val completed: StateFlow<Boolean> = _completed.asStateFlow()
 
-    fun addAlphaLogin(username: String, password: String) {
+    fun addAlphaLogin(username: String, password: String, serverUrl: String) {
         val cleanUser = username.trim()
+        val cleanUrl = serverUrl.trim().trimEnd('/')
         if (cleanUser.isBlank() || password.isBlank()) {
             _message.value = "Enter your username and password."
+            return
+        }
+        if (cleanUrl.isBlank()) {
+            _message.value = "Enter the server URL."
             return
         }
         if (_syncing.value) return
@@ -95,7 +100,7 @@ class OnboardingViewModel @Inject constructor(
             try {
                 val id = provider.addXtream(
                     name = AlphaProviderDefaults.NAME,
-                    baseUrl = AlphaProviderDefaults.XTREAM_SERVER_URL,
+                    baseUrl = cleanUrl,
                     username = cleanUser,
                     password = password,
                 )
@@ -143,6 +148,7 @@ fun OnboardingWizard(
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
+    var serverUrl by remember { mutableStateOf(AlphaProviderDefaults.XTREAM_SERVER_URL) }
     val canSubmit = !syncing
 
     androidx.compose.runtime.LaunchedEffect(completed) {
@@ -232,11 +238,12 @@ fun OnboardingWizard(
                     color = UltraTokens.Fg,
                 )
                 Text(
-                    "Enter the username and password you were given. The server is already configured.",
+                    "Enter your server URL, username, and password.",
                     color = UltraTokens.Fg2,
                     fontSize = if (compact) 15.sp else 18.sp,
                     lineHeight = if (compact) 21.sp else 25.sp,
                 )
+                FormField("Server URL", serverUrl, { serverUrl = it }, autoFocus = false)
                 FormField(S.fieldUsername, user, { user = it }, autoFocus = !compact)
                 FormField(S.fieldPassword, pass, { pass = it }, password = true)
                 Box(
@@ -245,7 +252,7 @@ fun OnboardingWizard(
                         .height(54.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(if (canSubmit) UltraTokens.CtaBg else UltraTokens.SurfaceStrong)
-                        .clickable(enabled = canSubmit) { vm.addAlphaLogin(user, pass) },
+                        .clickable(enabled = canSubmit) { vm.addAlphaLogin(user, pass, serverUrl) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

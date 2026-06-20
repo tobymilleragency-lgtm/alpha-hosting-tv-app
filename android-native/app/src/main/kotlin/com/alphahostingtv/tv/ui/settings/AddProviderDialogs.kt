@@ -156,9 +156,10 @@ fun FormField(
 @OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class)
 @Composable
 fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, user: String, pass: String) -> Unit) {
+    var serverUrl by remember { mutableStateOf(AlphaProviderDefaults.XTREAM_SERVER_URL) }
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
-    val canSubmit = user.isNotBlank() && pass.isNotBlank()
+    val canSubmit = user.isNotBlank() && pass.isNotBlank() && serverUrl.isNotBlank()
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     AddProviderDialog(
         title = S.addProviderXtreamTitle,
@@ -166,7 +167,7 @@ fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, us
         onSubmit = {
             onSubmit(
                 AlphaProviderDefaults.NAME,
-                AlphaProviderDefaults.XTREAM_SERVER_URL,
+                serverUrl.trim().trimEnd('/'),
                 user.trim(),
                 pass,
             )
@@ -174,10 +175,11 @@ fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, us
         canSubmit = canSubmit,
     ) {
         Text(
-            "Enter the username and password from Alpha Hosting TV. The server is configured automatically.",
+            "Enter your server URL, username, and password.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
         )
+        FormField("Server URL", serverUrl, { serverUrl = it }, autoFocus = false)
         FormField(S.fieldUsername, user, { user = it }, autoFocus = true)
         FormField(S.fieldPassword, pass, { pass = it }, password = true)
     }
