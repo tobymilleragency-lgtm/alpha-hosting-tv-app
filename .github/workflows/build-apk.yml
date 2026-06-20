@@ -3,7 +3,6 @@ name: Build APK
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 jobs:
@@ -42,24 +41,3 @@ jobs:
           name: AlphaHostingTV-${{ env.APK_VERSION }}
           path: AlphaHostingTV-debug.apk
           retention-days: 30
-
-      # On version tags (v1.0.0), publish a GitHub Release with the APK attached
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Alpha Hosting TV ${{ env.APK_VERSION }}
-          body: |
-            ## Alpha Hosting TV ${{ env.APK_VERSION }}
-
-            ### Installation
-            1. Download `AlphaHostingTV-debug.apk` below
-            2. **Fire Stick**: Enable Developer Options → Apps from Unknown Sources → sideload via Downloader app
-            3. **Android Phone**: Download and tap to install (allow unknown sources if prompted)
-
-            ### Setup
-            - Server: your Xtream UI server URL
-            - Username: provided by Alpha Hosting TV
-            - Password: provided by Alpha Hosting TV
-          files: AlphaHostingTV-debug.apk
-          generate_release_notes: false

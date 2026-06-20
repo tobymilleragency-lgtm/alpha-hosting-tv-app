@@ -356,7 +356,7 @@ fun SettingsScreen(
                 Button(onClick = {
                     vm.prepareBackup(backupReadyMsg, password = backupPwd.takeIf { it.isNotEmpty() })
                     val suffix = if (backupPwd.isNotEmpty()) "encrypted" else "plain"
-                    saveBackup.launch("ultra-tv-backup-${System.currentTimeMillis()}-$suffix.json")
+                    saveBackup.launch("alpha-hosting-tv-backup-${System.currentTimeMillis()}-$suffix.json")
                 }) { Text(S.settingsBackupExport) }
                 Button(onClick = {
                     loadBackup.launch(arrayOf("application/json", "*/*"))

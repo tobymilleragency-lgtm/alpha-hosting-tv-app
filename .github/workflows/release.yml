@@ -84,8 +84,8 @@ jobs:
           fi
 
       # AGP emits app-release.apk; the release artifact / in-app updater both
-      # expect UltraTV-debug.apk (debug-suffixed applicationId lineage). Rename
-      # and emit the sibling .sha256 the updater verifies (UltraTV-debug.apk.sha256).
+      # expect AlphaHostingTV-debug.apk (debug-suffixed applicationId lineage).
+      # Rename and emit the sibling .sha256 the updater verifies.
       - name: Stage release assets
         working-directory: ${{ github.workspace }}
         run: |
@@ -96,10 +96,10 @@ jobs:
             ls -R android-native/app/build/outputs/apk || true
             exit 1
           fi
-          cp "$SRC" dist/UltraTV-debug.apk
+          cp "$SRC" dist/AlphaHostingTV-debug.apk
           cd dist
-          sha256sum UltraTV-debug.apk | awk '{print $1}' > UltraTV-debug.apk.sha256
-          echo "SHA-256:"; cat UltraTV-debug.apk.sha256
+          sha256sum AlphaHostingTV-debug.apk | awk '{print $1}' > AlphaHostingTV-debug.apk.sha256
+          echo "SHA-256:"; cat AlphaHostingTV-debug.apk.sha256
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
@@ -108,5 +108,5 @@ jobs:
           name: ${{ github.ref_name }}
           generate_release_notes: true
           files: |
-            dist/UltraTV-debug.apk
-            dist/UltraTV-debug.apk.sha256
+            dist/AlphaHostingTV-debug.apk
+            dist/AlphaHostingTV-debug.apk.sha256

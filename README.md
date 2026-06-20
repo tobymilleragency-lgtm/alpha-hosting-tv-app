@@ -1,7 +1,7 @@
-# Ultra TV
+# Alpha Hosting TV
 
 <p align="center">
-  <img src="docs/redesign/logo.svg" alt="Ultra TV" width="160" />
+  <img src="docs/redesign/logo.svg" alt="Alpha Hosting TV" width="160" />
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/khalilbenaz/ultra-tv/releases/latest/download/UltraTV-debug.apk">
+  <a href="https://github.com/tobymilleragency-lgtm/alpha-hosting-tv-app/releases/latest/download/AlphaHostingTV-debug.apk">
     <img src="https://img.shields.io/badge/Download-Android%20TV%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
   </a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-0284c7?style=for-the-badge" alt="License" /></a>
@@ -46,16 +46,16 @@ Multi-View screen was removed in v1.0.0 — too few users, awkward focus on a si
 ### Logo
 
 <p align="center">
-  <img src="docs/redesign/logo.svg" alt="Ultra TV — logo variant C" width="120" />
+  <img src="docs/redesign/logo.svg" alt="Alpha Hosting TV logo" width="120" />
 </p>
 
 Logo "variant C" : dégradé rouge `#FF3A2F → #7A0E08`, trois ondes de diffusion qui émanent d'un point en bas à gauche, triangle play plein à droite. Installé en tant que `ic_launcher` adaptive + banner Android TV (320×180).
 
 ---
 
-## What is Ultra TV?
+## What is Alpha Hosting TV?
 
-Ultra TV is a **fully native** Android TV IPTV client. D-pad navigation is handled by Compose-TV's focus tree (no WebView bridges), playback uses Media3 / ExoPlayer for native codec support, and the whole catalog (channels, movies, series, EPG, history, favorites) lives in a local Room database. It speaks **Xtream Codes**, **M3U / M3U8** (URL or local file), and **Stalker Portal** out of the box.
+Alpha Hosting TV is a **fully native** Android TV IPTV client. D-pad navigation is handled by Compose-TV's focus tree (no WebView bridges), playback uses Media3 / ExoPlayer for native codec support, and the whole catalog (channels, movies, series, EPG, history, favorites) lives in a local Room database. It speaks **Xtream Codes**, **M3U / M3U8** (URL or local file), and **Stalker Portal** out of the box.
 
 A companion **Cloudflare Worker** (in `cloudflare-config/`) provides a MAC-based remote-config dashboard so users can provision their providers from a web browser and have the TV pull them in one click.
 
@@ -87,7 +87,6 @@ A companion **Cloudflare Worker** (in `cloudflare-config/`) provides a MAC-based
 - 🎮 D-pad: BACK = exit, plus **Live**: ▲/▼ zap channels in the current category; **VOD**: ◀/▶ seek
 - 🎚 **Subtitle + audio track selector** (VOD only) — reads Tracks from Media3, applies a TrackSelectionOverride
 - 📋 **EPG drawer overlay** (Live only) — press OK / center to slide in a right-side channel list with now/next; D-pad picks a channel to zap to
-- 📡 **Chromecast button** in the player toolbar — opens the system Cast picker when Google Play Services are available (silent no-op on Cast-less Android TV builds)
 - ⏸️ **Continue watching** (position recorded every 10 s + on dispose)
 - 🚀 **Auto-play last watched on launch** option
 - 🥷 **Open in external player** (VLC / MX / Just Player / Next Player) for codecs Media3 can't handle
@@ -106,7 +105,7 @@ A companion **Cloudflare Worker** (in `cloudflare-config/`) provides a MAC-based
 - 🎨 **3 themes**: Dark · AMOLED · Blue
 - 📐 **Adaptive nav**: sidebar on tablets/TV (≥ 840 dp), top bar on medium widths (600–840 dp, also the user-selectable option in Settings), bottom bar on phones (< 600 dp). Phones / tablets ship from the same APK.
 - 🌍 **Multi-language** UI: English / Français / Español / العربية + System (auto-detect). RTL layout direction flips automatically for Arabic. Translation table covers nav, home, settings and common buttons; the longer prose is still English for now.
-- 🔄 **Boot autolaunch** — open Ultra TV automatically when the box finishes booting
+- 🔄 **Boot autolaunch** — open Alpha Hosting TV automatically when the box finishes booting
 - 🪟 **Picture-in-picture** — pressing Home while a stream plays shrinks the player into a corner (Android 8+)
 - 🪜 **Onboarding wizard** on first launch — 3-step flow showing the device MAC and the two provider-adding paths
 - 🔢 Show / hide channel numbers, hide adult categories beyond PIN, resume playback toggle, auto-play next episode
@@ -124,12 +123,12 @@ A companion **Cloudflare Worker** (in `cloudflare-config/`) provides a MAC-based
 - 📦 **Chunked DB inserts** (500 rows / batch) during sync — flat memory on huge catalogs
 - ⚡ **DB indices** on `(providerId, categoryId)` for fast category filtering
 - 🎯 SQL-level filtering for Live TV per category (only the visible subset materialises)
-- 🧱 **R8 / ProGuard release build** with resource shrinking — **18 MB debug → 4.9 MB release** (incl. Google Cast SDK) (latest APK shipped is the release variant)
+- 🧱 **R8 / ProGuard release build** with resource shrinking — latest APK shipped is the release variant
 - 📑 **Paging Room** for Movies / Series flat-grid (pages of 60, only ~120 items in memory regardless of catalog size)
 
 ### Distribution & updates
 - 🇩 **Downloader code `5248504`** — initial sideload via the [Downloader app](https://www.aftvnews.com/downloader/) on any Android TV box.
-- 🌐 GitHub Releases — latest APK at `releases/latest/download/UltraTV-debug.apk`.
+- 🌐 GitHub Releases — latest APK at `releases/latest/download/AlphaHostingTV-debug.apk`.
 - 🔄 **In-app self-update** (v1.0.5+) — the app pings GitHub Releases on launch, compares versionCode, and pops a dialog with a progress bar that downloads + installs the new APK via PackageInstaller. First update prompts once for "Install unknown apps"; subsequent updates are one-tap. No Play Store, no third-party updater required.
 
 ### Telemetry & crash reporting
@@ -253,7 +252,7 @@ Recently landed:
 
 ## Credits
 
-Ultra TV — original work by [khalilbenaz](https://github.com/khalilbenaz). MIT-licensed.
+Alpha Hosting TV is based on Ultra TV, original work by [khalilbenaz](https://github.com/khalilbenaz). MIT-licensed.
 
 The native Android TV codebase supersedes the earlier Capacitor WebView build (kept under `android-app/` and `web/` for historical reference — legacy, no releases produced from it, see [`android-app/README.md`](android-app/README.md)) — Compose-TV's focus tree gave reliable D-pad navigation on every box we tested, including the Mecool KM7 Plus where the WebView bridge approach struggled.
 
@@ -265,4 +264,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Ultra TV is an IPTV **client**, not a content provider. It does not include, host or distribute any stream. Use only playlists, EPG sources and credentials you are authorized to access in your jurisdiction.
+Alpha Hosting TV is an IPTV **client**, not a content provider. It does not include, host or distribute any stream. Use only playlists, EPG sources and credentials you are authorized to access in your jurisdiction.

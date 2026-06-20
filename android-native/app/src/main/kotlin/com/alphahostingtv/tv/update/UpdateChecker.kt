@@ -23,12 +23,12 @@ import java.util.concurrent.TimeUnit
  *
  * Flow:
  *   1) [checkForUpdate] hits GitHub's REST API and parses tag_name + the
- *      UltraTV-debug.apk asset URL from the *latest* release. We compare
+ *      AlphaHostingTV-debug.apk asset URL from the *latest* release. We compare
  *      versionCode (declared in build.gradle.kts) — if the remote tag's name
  *      maps to a higher one we surface an [UpdateInfo].
  *   2) [downloadAndInstall] streams the APK into the app's filesDir and uses
  *      PackageInstaller to commit a session. The system prompts the user the
- *      first time (Settings → Install unknown apps for Ultra TV).
+ *      first time (Settings → Install unknown apps for Alpha Hosting TV).
  */
 object UpdateChecker {
 
@@ -98,7 +98,7 @@ object UpdateChecker {
                         if (name.equals(APK_NAME, ignoreCase = true)) {
                             apkUrl = a.optString("browser_download_url")
                         } else if (name.equals("$APK_NAME.sha256", ignoreCase = true)) {
-                            // Sibling checksum asset (e.g. "UltraTV-debug.apk.sha256").
+                            // Sibling checksum asset (e.g. "AlphaHostingTV-debug.apk.sha256").
                             sha256Url = a.optString("browser_download_url")
                         }
                     }

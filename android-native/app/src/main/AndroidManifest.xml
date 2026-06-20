@@ -34,7 +34,6 @@
         android:theme="@style/Theme.AlphaHostingTv"
         android:networkSecurityConfig="@xml/network_security_config">
 
-        <!-- Google Cast SDK: points at our OptionsProvider for the receiver id. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -17,7 +17,7 @@ import javax.inject.Inject
  * pref, the receiver returns immediately and does nothing.
  *
  * Android TV launchers don't auto-launch foreground apps; this BootReceiver is
- * what gives Ultra TV the "always be the first thing on screen" behavior.
+ * what gives Alpha Hosting TV the "always be the first thing on screen" behavior.
  */
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {

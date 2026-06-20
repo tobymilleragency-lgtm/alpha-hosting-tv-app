@@ -84,7 +84,7 @@ fun UpdateDialog() {
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                "Ultra TV ${update.versionName}",
+                "Alpha Hosting TV ${update.versionName}",
                 color = UltraTokens.Fg,
                 fontSize = 32.sp,
                 fontFamily = UltraFonts.Serif,

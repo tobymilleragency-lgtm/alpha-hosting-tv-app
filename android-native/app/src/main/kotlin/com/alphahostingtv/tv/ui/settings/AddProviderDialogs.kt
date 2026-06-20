@@ -37,6 +37,9 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 
+private const val ALPHA_XTREAM_NAME = "Alpha Hosting TV"
+private const val ALPHA_XTREAM_SERVER_URL = "http://alpha.tvmain.icu:8080"
+
 /**
  * Full-screen modal scrim hosting a form. Lets us keep the Settings list above
  * 100% text/buttons/switches so D-pad scroll never lands on a TextField that
@@ -141,22 +144,29 @@ fun FormField(
 @OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class)
 @Composable
 fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, user: String, pass: String) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
-    val canSubmit = url.isNotBlank() && user.isNotBlank() && pass.isNotBlank()
+    val canSubmit = user.isNotBlank() && pass.isNotBlank()
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     AddProviderDialog(
         title = S.addProviderXtreamTitle,
         onDismiss = onDismiss,
-        onSubmit = { onSubmit(name, url, user, pass) },
+        onSubmit = {
+            onSubmit(
+                ALPHA_XTREAM_NAME,
+                ALPHA_XTREAM_SERVER_URL,
+                user.trim(),
+                pass.trim(),
+            )
+        },
         canSubmit = canSubmit,
     ) {
-        FormField(S.fieldNameOptional, name, { name = it })
-        FormField(S.fieldServerUrl, url, { url = it }, keyboardType = KeyboardType.Uri,
-            placeholder = "http://provider.com:8080")
-        FormField(S.fieldUsername, user, { user = it })
+        Text(
+            "Enter the username and password from Alpha Hosting TV. The server is configured automatically.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+        )
+        FormField(S.fieldUsername, user, { user = it }, autoFocus = true)
         FormField(S.fieldPassword, pass, { pass = it }, password = true)
     }
 }
