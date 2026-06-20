@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,9 +40,9 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-
-private const val ALPHA_XTREAM_NAME = "Alpha Hosting TV"
-private const val ALPHA_XTREAM_SERVER_URL = "http://alpha.tvmain.icu:8080"
+import com.alphahostingtv.tv.data.config.AlphaProviderDefaults
+import com.alphahostingtv.tv.ui.common.FormFactor
+import com.alphahostingtv.tv.ui.common.rememberFormFactor
 
 /**
  * Full-screen modal scrim hosting a form. Lets us keep the Settings list above
@@ -55,6 +59,7 @@ fun AddProviderDialog(
     canSubmit: Boolean,
     content: @Composable () -> Unit,
 ) {
+    val compact = rememberFormFactor() == FormFactor.Compact
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -63,9 +68,16 @@ fun AddProviderDialog(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(min = 480.dp, max = 720.dp)
+                .padding(horizontal = if (compact) 16.dp else 24.dp)
+                .then(
+                    if (compact) Modifier.fillMaxWidth()
+                    else Modifier.widthIn(min = 480.dp, max = 720.dp)
+                )
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface)
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -153,10 +165,10 @@ fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, us
         onDismiss = onDismiss,
         onSubmit = {
             onSubmit(
-                ALPHA_XTREAM_NAME,
-                ALPHA_XTREAM_SERVER_URL,
+                AlphaProviderDefaults.NAME,
+                AlphaProviderDefaults.XTREAM_SERVER_URL,
                 user.trim(),
-                pass.trim(),
+                pass,
             )
         },
         canSubmit = canSubmit,

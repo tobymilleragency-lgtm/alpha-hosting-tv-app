@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,8 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.alphahostingtv.tv.ui.common.FormFactor
+import com.alphahostingtv.tv.ui.common.rememberFormFactor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,6 +59,8 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     var openDialog by remember { mutableStateOf(OpenDialog.NONE) }
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
+    val compact = rememberFormFactor() == FormFactor.Compact
+    val horizontalPadding = if (compact) 16.dp else com.alphahostingtv.tv.ui.theme.UltraTokens.EdgeGutter
     val savedMsg = S.toastBackupSaved
     val saveFailedMsg = S.toastSaveFailed
     val emptyFileMsg = S.toastEmptyFile
@@ -157,7 +162,7 @@ fun SettingsScreen(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = T.EdgeGutter, end = T.EdgeGutter, top = 40.dp, bottom = 40.dp),
+            .padding(start = horizontalPadding, end = horizontalPadding, top = if (compact) 24.dp else 40.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
@@ -170,8 +175,8 @@ fun SettingsScreen(
         Text(
             S.settingsTitle,
             fontFamily = F.Serif,
-            fontSize = 56.sp,
-            lineHeight = 56.sp,
+            fontSize = if (compact) 40.sp else 56.sp,
+            lineHeight = if (compact) 42.sp else 56.sp,
             letterSpacing = (-1.5).sp,
             color = T.Fg,
         )
@@ -264,7 +269,7 @@ fun SettingsScreen(
                 S.settingsAddProviderHint,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { openDialog = OpenDialog.XTREAM }) { Text(S.settingsAddXtream) }
                 Button(onClick = { openDialog = OpenDialog.M3U_URL }) { Text(S.settingsAddM3uUrl) }
                 Button(
