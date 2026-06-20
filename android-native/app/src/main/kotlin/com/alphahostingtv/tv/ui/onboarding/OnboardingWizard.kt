@@ -1,7 +1,6 @@
 package com.alphahostingtv.tv.ui.onboarding
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.tv.material3.Button
+import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.alphahostingtv.tv.data.config.AlphaProviderDefaults
@@ -149,7 +150,7 @@ fun OnboardingWizard(
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
     var serverUrl by remember { mutableStateOf(AlphaProviderDefaults.XTREAM_SERVER_URL) }
-    val canSubmit = !syncing
+    val canSubmit = !syncing && user.isNotBlank() && pass.isNotBlank() && serverUrl.isNotBlank()
 
     androidx.compose.runtime.LaunchedEffect(completed) {
         if (completed) onLoginComplete()
@@ -246,22 +247,21 @@ fun OnboardingWizard(
                 FormField("Server URL", serverUrl, { serverUrl = it }, autoFocus = false)
                 FormField(S.fieldUsername, user, { user = it }, autoFocus = !compact)
                 FormField(S.fieldPassword, pass, { pass = it }, password = true)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (canSubmit) UltraTokens.CtaBg else UltraTokens.SurfaceStrong)
-                        .clickable(enabled = canSubmit) { vm.addAlphaLogin(user, pass, serverUrl) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        if (syncing) "Logging in..." else "Log in and load channels",
-                        color = if (canSubmit) UltraTokens.CtaFgOnCta else UltraTokens.Fg3,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
+                Button(
+                        onClick = { vm.addAlphaLogin(user, pass, serverUrl) },
+                        enabled = canSubmit,
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        colors = ButtonDefaults.colors(
+                            containerColor = if (canSubmit) UltraTokens.CtaBg else UltraTokens.SurfaceStrong,
+                            contentColor = if (canSubmit) UltraTokens.CtaFgOnCta else UltraTokens.Fg3,
+                        ),
+                    ) {
+                        Text(
+                            if (syncing) "Logging in..." else "Log in and load channels",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 message?.let {
                     Text(
                         it,
