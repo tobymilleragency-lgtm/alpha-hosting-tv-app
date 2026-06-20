@@ -172,11 +172,70 @@ class XtreamClient @Inject constructor(private val ok: OkHttpClient) {
 
     // ---- Helpers ----
 
-    private suspend inline fun <T : Any> arrAt(p: ProviderEntity, action: String, transform: (JsonObject) -> T?): List<T> = runCatching {
+    suspend fun validateLogin(p: ProviderEntity): Unit {
+        val body = get("${p.baseUrl}/player_api.php?username=${p.username.urlEnc()}&password=${p.password.urlEnc()}")
+        val root = runCatching { json.parseToJsonElement(body) as? JsonObject }.getOrNull() ?: return
+        val status = root["status"]?.str()?.trim()?.lowercase()
+        if (status == "error" || status == "failed" || status == "0") {
+            throw IllegalStateException(root["message"]?.str() ?: "Server rejected credentials")
+        }
+        val userInfo = root["user_info"] as? JsonObject ?: return
+        ensureNotRejected(userInfo)
+    }
+
+    private suspend inline fun <T : Any> arrAt(p: ProviderEntity, action: String, transform: (JsonObject) -> T?): List<T> {
         val body = get("${p.baseUrl}/player_api.php?username=${p.username.urlEnc()}&password=${p.password.urlEnc()}&action=$action")
-        val arr = json.parseToJsonElement(body) as? JsonArray ?: return@runCatching emptyList<T>()
-        arr.mapNotNull { (it as? JsonObject)?.let(transform) }
-    }.getOrDefault(emptyList())
+        val parsed = json.parseToJsonElement(body)
+        when (parsed) {
+            is JsonObject -> {
+                val userInfo = parsed["user_info"] as? JsonObject
+                ensureNotRejected(userInfo)
+                val status = parsed["status"]?.str()?.trim()?.lowercase()
+                if (status == "error" || status == "failed" || status == "0") {
+                    throw IllegalStateException(parsed["message"]?.str() ?: "Server error for $action")
+                }
+                val msg = parsed["message"]?.str()?.trim()
+                val err = parsed["error"]?.str()?.trim()
+                throw IllegalStateException(
+                    when {
+                        !err.isNullOrBlank() -> "Server error: $err"
+                        !msg.isNullOrBlank() -> "Server response: $msg"
+                        else -> "Server did not return a list for $action"
+                    },
+                )
+            }
+            is JsonArray -> return parsed.mapNotNull { (it as? JsonObject)?.let(transform) }
+            else -> throw IllegalStateException("Invalid response from server for $action")
+        }
+    }
+
+    private fun ensureNotRejected(userInfo: JsonObject?) {
+        if (!isAuthFailure(userInfo)) return
+        val message = userInfo
+            ?.get("message")
+            ?.str()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: userInfo
+                ?.get("status")
+                ?.str()
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+            ?: "Invalid username or password."
+        throw SecurityException("Login failed: $message")
+    }
+
+    private fun isAuthFailure(userInfo: JsonObject?): Boolean {
+        val authValue = userInfo?.get("auth")
+        if (authValue == null) return false
+        val auth = authValue.str()?.trim()?.lowercase()
+        return when (auth) {
+            null -> false
+            "1", "true", "active", "enabled", "ok" -> false
+            "0", "false", "expired", "disabled", "banned", "inactive", "blocked" -> true
+            else -> auth.toIntOrNull()?.let { it <= 0 } ?: false
+        }
+    }
 
     private fun JsonElement.str(): String? = (this as? JsonPrimitive)?.contentOrNull
 

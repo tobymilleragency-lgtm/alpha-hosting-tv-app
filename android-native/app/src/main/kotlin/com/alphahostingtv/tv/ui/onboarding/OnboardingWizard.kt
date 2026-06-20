@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
@@ -100,13 +101,21 @@ class OnboardingViewModel @Inject constructor(
                 )
                 _message.value = "Syncing channels..."
                 val n = provider.syncAll(id) { _message.value = it }
-                if (n <= 0) error("No channels came back. Check the username and password.")
+                if (n <= 0) {
+                    _message.value = "Login works, but no channels or library items were returned. Ask Alpha Hosting TV to confirm your package has active channels."
+                    return@launch
+                }
                 provider.setDefault(id)
                 _message.value = "Done - $n channels"
                 prefs.markOnboardingSeen()
                 _completed.value = true
             } catch (t: Throwable) {
-                _message.value = "Could not add login: ${t.message ?: t.javaClass.simpleName}"
+                _message.value = when {
+                    t is SecurityException -> "Login failed: ${t.message ?: \"Invalid username or password.\"}"
+                    t is SocketTimeoutException -> "Login timed out while reaching Alpha Hosting TV. Try again on a faster network."
+                    t is java.io.IOException -> "Could not reach Alpha Hosting TV server. Check internet or server URL."
+                    else -> "Could not add login: ${t.message ?: t.javaClass.simpleName}"
+                }
             } finally {
                 _syncing.value = false
             }
@@ -249,7 +258,16 @@ fun OnboardingWizard(
                 message?.let {
                     Text(
                         it,
-                        color = if (it.startsWith("Could not")) UltraTokens.Warn else UltraTokens.Fg3,
+                        color = if (
+                            it.startsWith("Could not") ||
+                                it.startsWith("Login failed") ||
+                                it.startsWith("Could not reach") ||
+                                it.startsWith("Login timed out")
+                        ) {
+                            UltraTokens.Warn
+                        } else {
+                            UltraTokens.Fg3
+                        },
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                     )
