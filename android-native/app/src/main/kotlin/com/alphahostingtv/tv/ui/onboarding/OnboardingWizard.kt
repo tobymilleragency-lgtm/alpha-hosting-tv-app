@@ -1,6 +1,7 @@
 package com.alphahostingtv.tv.ui.onboarding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,8 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.tv.material3.Button
-import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.alphahostingtv.tv.data.config.AlphaProviderDefaults
@@ -55,6 +54,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -67,9 +67,8 @@ class OnboardingViewModel @Inject constructor(
 
     val mac: String = deviceMac.mac
 
-    val show: StateFlow<Boolean> = kotlinx.coroutines.flow.combine(
-        prefs.flow, provider.observeProviders(),
-    ) { p, ps -> !p.hasSeenOnboarding && ps.isEmpty() }
+    val show: StateFlow<Boolean> = prefs.flow
+        .map { p -> !p.hasSeenOnboarding }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val _syncing = MutableStateFlow(false)
@@ -78,7 +77,16 @@ class OnboardingViewModel @Inject constructor(
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    private val _completed = MutableStateFlow(false)
+    val completed: StateFlow<Boolean> = _completed.asStateFlow()
+
     fun addAlphaLogin(username: String, password: String) {
+        val cleanUser = username.trim()
+        if (cleanUser.isBlank() || password.isBlank()) {
+            _message.value = "Enter your username and password."
+            return
+        }
+        if (_syncing.value) return
         viewModelScope.launch {
             _syncing.value = true
             _message.value = "Adding Alpha Hosting TV login..."
@@ -86,14 +94,16 @@ class OnboardingViewModel @Inject constructor(
                 val id = provider.addXtream(
                     name = AlphaProviderDefaults.NAME,
                     baseUrl = AlphaProviderDefaults.XTREAM_SERVER_URL,
-                    username = username.trim(),
+                    username = cleanUser,
                     password = password,
                 )
-                if (provider.firstActive() == null) provider.setDefault(id)
                 _message.value = "Syncing channels..."
                 val n = provider.syncAll(id) { _message.value = it }
+                if (n <= 0) error("No channels came back. Check the username and password.")
+                provider.setDefault(id)
                 _message.value = "Done - $n channels"
                 prefs.markOnboardingSeen()
+                _completed.value = true
             } catch (t: Throwable) {
                 _message.value = "Could not add login: ${t.message ?: t.javaClass.simpleName}"
             } finally {
@@ -110,7 +120,7 @@ class OnboardingViewModel @Inject constructor(
 @OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class)
 @Composable
 fun OnboardingWizard(
-    onOpenSettings: () -> Unit,
+    onLoginComplete: () -> Unit,
     vm: OnboardingViewModel = hiltViewModel(),
 ) {
     val show by vm.show.collectAsState()
@@ -119,10 +129,15 @@ fun OnboardingWizard(
     val compact = rememberFormFactor() == FormFactor.Compact
     val syncing by vm.syncing.collectAsState()
     val message by vm.message.collectAsState()
+    val completed by vm.completed.collectAsState()
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
-    val canSubmit = user.isNotBlank() && pass.isNotBlank() && !syncing
+    val canSubmit = !syncing
+
+    androidx.compose.runtime.LaunchedEffect(completed) {
+        if (completed) onLoginComplete()
+    }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Box(
@@ -214,17 +229,18 @@ fun OnboardingWizard(
                 )
                 FormField(S.fieldUsername, user, { user = it }, autoFocus = !compact)
                 FormField(S.fieldPassword, pass, { pass = it }, password = true)
-                Button(
-                    onClick = { vm.addAlphaLogin(user, pass) },
-                    enabled = canSubmit,
-                    colors = ButtonDefaults.colors(
-                        containerColor = UltraTokens.CtaBg,
-                        contentColor = UltraTokens.CtaFgOnCta,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (canSubmit) UltraTokens.CtaBg else UltraTokens.SurfaceStrong)
+                        .clickable(enabled = canSubmit) { vm.addAlphaLogin(user, pass) },
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        if (syncing) "Working..." else "Add login",
+                        if (syncing) "Logging in..." else "Log in and load channels",
+                        color = if (canSubmit) UltraTokens.CtaFgOnCta else UltraTokens.Fg3,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -236,16 +252,6 @@ fun OnboardingWizard(
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                     )
-                }
-                Button(
-                    onClick = {
-                        vm.dismiss()
-                        onOpenSettings()
-                    },
-                    colors = ButtonDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Skip for now", color = UltraTokens.Fg3, fontSize = 14.sp)
                 }
             }
         }

@@ -188,11 +188,6 @@ private fun Root(vm: AppViewModel = hiltViewModel()) {
     ) {
         AlphaHostingTvTheme(theme = prefs.theme) {
             AlphaHostingTvAppRoot(prefs.sidebarPosition)
-            // First-run wizard renders itself as a full-screen overlay only
-            // when no provider is configured AND the user hasn't dismissed it.
-            com.alphahostingtv.tv.ui.onboarding.OnboardingWizard(
-                onOpenSettings = { /* user can re-enter Settings via sidebar */ },
-            )
         }
     }
 }
@@ -256,6 +251,14 @@ private fun AlphaHostingTvAppRoot(sidebarPosition: SidebarPosition) {
             }
         }
         com.alphahostingtv.tv.ui.common.ToasterHost()
+        com.alphahostingtv.tv.ui.onboarding.OnboardingWizard(
+            onLoginComplete = {
+                nav.navigate(Routes.LIVE) {
+                    launchSingleTop = true
+                    popUpTo(Routes.HOME)
+                }
+            },
+        )
         }
     }
 }

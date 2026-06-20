@@ -251,13 +251,17 @@ class ProviderRepository @Inject constructor(
 
     suspend fun addXtream(name: String, baseUrl: String, username: String, password: String): Long {
         val normalised = baseUrl.trimEnd('/')
+        val displayName = name.ifBlank { runCatching { java.net.URI(normalised).host }.getOrNull() ?: "Xtream" }
         // Idempotent: if the (kind, baseUrl, username) tuple already exists,
-        // reuse its id rather than creating a duplicate row. Callers that
-        // sync after add() will simply re-pull catalogs into the same record.
-        providerDao.findByIdentity("XTREAM", normalised, username)?.let { return it.id }
+        // refresh its credentials and reuse its id rather than creating a
+        // duplicate row. This lets a customer correct a mistyped password.
+        providerDao.findByIdentity("XTREAM", normalised, username)?.let {
+            providerDao.upsert(it.copy(name = displayName, password = password))
+            return it.id
+        }
         return providerDao.upsert(
             ProviderEntity(
-                name = name.ifBlank { runCatching { java.net.URI(normalised).host }.getOrNull() ?: "Xtream" },
+                name = displayName,
                 kind = "XTREAM",
                 baseUrl = normalised,
                 username = username,
