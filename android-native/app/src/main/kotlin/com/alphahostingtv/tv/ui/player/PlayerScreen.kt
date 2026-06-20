@@ -602,10 +602,6 @@ fun PlayerScreen(url: String, title: String, onBack: () -> Unit, vm: PlayerViewM
                 Button(onClick = { vm.recordLive(120, S.recordingQueuedTemplate) }) { Text("⏺ ${S.playerRecord} (2h)") }
             }
             Button(onClick = { displayMenu = !displayMenu }) { Text("📐 ${S.playerDisplay}") }
-                    },
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
             Button(onClick = { statsOpen = !statsOpen }) {
                 Text("📊 " + S.playerStats)
             }
