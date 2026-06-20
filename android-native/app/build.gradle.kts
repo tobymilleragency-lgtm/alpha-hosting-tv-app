@@ -22,33 +22,22 @@ val appVersionCode: Int = run {
     parts[0] * 10_000 + parts[1] * 100 + parts[2]
 }
 
-// Remote-telemetry endpoint + token. Previously hardcoded as consts inside
-// RemoteLog.kt and baked into the APK. They are now BuildConfig fields so the
-// values can be overridden per build without touching source — via a Gradle
-// property (-PULTRA_LOG_URL=... / gradle.properties) or an environment variable
-// (ULTRA_LOG_URL / ULTRA_LOG_TOKEN). The defaults below are the historical
-// production values, so a plain local/CI build behaves exactly as before.
-// Rotate these in lock-step with the worker secret.
+// Telemetry disabled — LOG_URL is intentionally empty so RemoteLog no-ops.
+// Set ALPHA_LOG_URL + ALPHA_LOG_TOKEN env vars if you want to re-enable.
 fun resolveBuildConfigValue(name: String, default: String): String =
     (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
         ?: System.getenv(name)?.takeIf { it.isNotBlank() }
         ?: default
 
-val ultraLogUrl = resolveBuildConfigValue(
-    "ULTRA_LOG_URL", "https://ultratv-config.khalilbenaz.workers.dev",
-)
-val ultraLogToken = resolveBuildConfigValue(
-    "ULTRA_LOG_TOKEN", "f-w31zHuqg0ntBPRSJtOVEXGB55B9uv5",
-)
+val ultraLogUrl   = resolveBuildConfigValue("ALPHA_LOG_URL",   "")
+val ultraLogToken = resolveBuildConfigValue("ALPHA_LOG_TOKEN", "")
 
 android {
-    namespace = "com.ultratv.tv.nativeapp"
+    namespace = "com.alphahostingtv.tv"
     compileSdk = 35
 
     defaultConfig {
-        // Different applicationId during development so it can be installed
-        // alongside the existing Capacitor build (com.ultratv.tv).
-        applicationId = "com.ultratv.tv.nativeapp"
+        applicationId = "com.alphahostingtv.tv"
         minSdk = 28
         targetSdk = 35
         versionCode = appVersionCode

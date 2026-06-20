@@ -2,7 +2,7 @@
 <resources>
     <!-- Splash/launcher theme — the real UI is Compose; we just need a dark
          background while the activity is creating its setContent { }. -->
-    <style name="Theme.UltraTv" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.AlphaHostingTv" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:colorBackground">@color/bg</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

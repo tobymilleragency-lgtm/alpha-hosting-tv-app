@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ultra-tv-native"
+rootProject.name = "alpha-hosting-tv"
 include(":app")

@@ -24,20 +24,20 @@
          redundant — when android:networkSecurityConfig is present it governs
          cleartext, and keeping both risks the two drifting out of sync. -->
     <application
-        android:name=".UltraTvApp"
+        android:name=".AlphaHostingTvApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:banner="@drawable/banner"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.UltraTv"
+        android:theme="@style/Theme.AlphaHostingTv"
         android:networkSecurityConfig="@xml/network_security_config">
 
         <!-- Google Cast SDK: points at our OptionsProvider for the receiver id. -->
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.ultratv.tv.nativeapp.cast.UltraTvCastOptionsProvider" />
+            android:value="com.alphahostingtv.tv.cast.AlphaHostingTvCastOptionsProvider" />
 
         <activity
             android:name=".MainActivity"
@@ -46,7 +46,7 @@
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density|fontScale"
             android:resizeableActivity="true"
-            android:theme="@style/Theme.UltraTv">
+            android:theme="@style/Theme.AlphaHostingTv">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -91,10 +91,10 @@
         </receiver>
 
         <receiver
-            android:name="com.ultratv.tv.nativeapp.data.reminders.ReminderReceiver"
+            android:name="com.alphahostingtv.tv.data.reminders.ReminderReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.ultratv.tv.nativeapp.REMINDER_FIRE" />
+                <action android:name="com.alphahostingtv.tv.REMINDER_FIRE" />
             </intent-filter>
         </receiver>
     </application>

@@ -1,0 +1,65 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x android-native/gradlew
+
+      - name: Build debug APK
+        working-directory: android-native
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: |
+          VERSION=$(cat VERSION)
+          cp android-native/app/build/outputs/apk/debug/app-debug.apk \
+             AlphaHostingTV-debug.apk
+          echo "APK_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlphaHostingTV-${{ env.APK_VERSION }}
+          path: AlphaHostingTV-debug.apk
+          retention-days: 30
+
+      # On version tags (v1.0.0), publish a GitHub Release with the APK attached
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Alpha Hosting TV ${{ env.APK_VERSION }}
+          body: |
+            ## Alpha Hosting TV ${{ env.APK_VERSION }}
+
+            ### Installation
+            1. Download `AlphaHostingTV-debug.apk` below
+            2. **Fire Stick**: Enable Developer Options → Apps from Unknown Sources → sideload via Downloader app
+            3. **Android Phone**: Download and tap to install (allow unknown sources if prompted)
+
+            ### Setup
+            - Server: your Xtream UI server URL
+            - Username: provided by Alpha Hosting TV
+            - Password: provided by Alpha Hosting TV
+          files: AlphaHostingTV-debug.apk
+          generate_release_notes: false

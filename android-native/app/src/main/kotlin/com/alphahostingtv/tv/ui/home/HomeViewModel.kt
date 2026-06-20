@@ -1,0 +1,95 @@
+package com.alphahostingtv.tv.ui.home
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.alphahostingtv.tv.data.config.DeviceMac
+import com.alphahostingtv.tv.data.db.ChannelEntity
+import com.alphahostingtv.tv.data.db.MovieEntity
+import com.alphahostingtv.tv.data.db.ProviderEntity
+import com.alphahostingtv.tv.data.db.SeriesEntity
+import com.alphahostingtv.tv.data.db.WatchHistoryEntity
+import com.alphahostingtv.tv.data.repo.CatalogRepository
+import com.alphahostingtv.tv.data.repo.HistoryRepository
+import com.alphahostingtv.tv.data.repo.PlaybackContext
+import com.alphahostingtv.tv.data.repo.ProviderRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val provider: ProviderRepository,
+    private val catalog: CatalogRepository,
+    private val history: HistoryRepository,
+    private val deviceMac: DeviceMac,
+    private val playback: PlaybackContext,
+) : ViewModel() {
+
+    val mac: String = deviceMac.mac
+
+    val providers: StateFlow<List<ProviderEntity>> = provider.observeProviders()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val pid = providers.map { ps -> (ps.firstOrNull { it.active } ?: ps.firstOrNull())?.id }
+
+    val continueWatching: StateFlow<List<WatchHistoryEntity>> = pid
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else history.continueWatching(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val recentlyWatched: StateFlow<List<WatchHistoryEntity>> = pid
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else history.recent(id, 20) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val featuredMovies: StateFlow<List<MovieEntity>> = pid
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else catalog.movies(id).map { l -> l.take(20) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val featuredSeries: StateFlow<List<SeriesEntity>> = pid
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else catalog.seriesList(id).map { l -> l.take(20) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val featuredChannels: StateFlow<List<ChannelEntity>> = pid
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else catalog.channels(id).map { l -> l.take(30) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Sets the playback context from a history entry so the player can record proper context. */
+    fun playFromHistory(h: WatchHistoryEntity) {
+        playback.set(PlaybackContext.Item(
+            providerId = h.providerId,
+            kind = h.kind,
+            remoteId = h.remoteId,
+            title = h.title,
+            poster = h.poster,
+            streamUrl = h.streamUrl,
+            parentRemoteId = h.parentRemoteId,
+        ))
+    }
+
+    /** Removes an entry from history (used by "Dismiss" on Continue watching). */
+    fun dismiss(h: WatchHistoryEntity) {
+        viewModelScope.launch { history.remove(h.providerId, h.kind, h.remoteId) }
+    }
+
+    private val _refreshing = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing
+
+    fun refresh() {
+        viewModelScope.launch {
+            val id = providers.value.firstOrNull { it.active }?.id
+                ?: providers.value.firstOrNull()?.id
+                ?: return@launch
+            _refreshing.value = true
+            try { provider.syncAll(id) } finally { _refreshing.value = false }
+        }
+    }
+}

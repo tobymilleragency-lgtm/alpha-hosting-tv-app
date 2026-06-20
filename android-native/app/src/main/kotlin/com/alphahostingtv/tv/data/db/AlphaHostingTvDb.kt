@@ -1,0 +1,35 @@
+package com.alphahostingtv.tv.data.db
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+
+@Database(
+    entities = [
+        ProviderEntity::class,
+        ChannelEntity::class,
+        MovieEntity::class,
+        SeriesEntity::class,
+        EpisodeEntity::class,
+        CategoryEntity::class,
+        FavoriteEntity::class,
+        EpgEntity::class,
+        WatchHistoryEntity::class,
+        RecordingEntity::class,
+        com.alphahostingtv.tv.data.reminders.ReminderEntity::class,
+    ],
+    version = 10,
+    exportSchema = true,
+)
+abstract class AlphaHostingTvDb : RoomDatabase() {
+    abstract fun providerDao(): ProviderDao
+    abstract fun channelDao(): ChannelDao
+    abstract fun movieDao(): MovieDao
+    abstract fun seriesDao(): SeriesDao
+    abstract fun episodeDao(): EpisodeDao
+    abstract fun categoryDao(): CategoryDao
+    abstract fun favoriteDao(): FavoriteDao
+    abstract fun epgDao(): EpgDao
+    abstract fun watchHistoryDao(): WatchHistoryDao
+    abstract fun recordingDao(): RecordingDao
+    abstract fun reminderDao(): com.alphahostingtv.tv.data.reminders.ReminderDao
+}
