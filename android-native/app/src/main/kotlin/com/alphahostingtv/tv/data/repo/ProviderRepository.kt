@@ -4,10 +4,12 @@ import com.alphahostingtv.tv.data.db.CategoryDao
 import com.alphahostingtv.tv.data.db.CategoryEntity
 import com.alphahostingtv.tv.data.db.ChannelDao
 import com.alphahostingtv.tv.data.db.EpisodeDao
+import com.alphahostingtv.tv.data.db.FavoriteDao
 import com.alphahostingtv.tv.data.db.MovieDao
 import com.alphahostingtv.tv.data.db.ProviderDao
 import com.alphahostingtv.tv.data.db.ProviderEntity
 import com.alphahostingtv.tv.data.db.SeriesDao
+import com.alphahostingtv.tv.data.db.WatchHistoryDao
 import com.alphahostingtv.tv.data.m3u.M3uParser
 import com.alphahostingtv.tv.data.parental.ParentalStore
 import com.alphahostingtv.tv.data.stalker.StalkerClient
@@ -26,6 +28,8 @@ class ProviderRepository @Inject constructor(
     private val seriesDao: SeriesDao,
     private val episodeDao: EpisodeDao,
     private val categoryDao: CategoryDao,
+    private val favDao: FavoriteDao,
+    private val historyDao: WatchHistoryDao,
     private val xtream: XtreamClient,
     private val m3u: M3uParser,
     private val stalker: StalkerClient,
@@ -283,12 +287,16 @@ class ProviderRepository @Inject constructor(
     }
 
     suspend fun delete(id: Long) {
+        epgDao.deleteForProvider(id)
+        episodeDao.deleteForProvider(id)
         channelDao.deleteForProvider(id)
         movieDao.deleteForProvider(id)
         seriesDao.deleteForProvider(id)
         categoryDao.deleteForProviderKind(id, "LIVE")
         categoryDao.deleteForProviderKind(id, "MOVIE")
         categoryDao.deleteForProviderKind(id, "SERIES")
+        favDao.removeForProvider(id)
+        historyDao.clearForProvider(id)
         providerDao.delete(id)
     }
 

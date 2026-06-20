@@ -148,6 +148,9 @@ interface EpisodeDao {
 
     @Query("DELETE FROM episode WHERE seriesId = :sid")
     suspend fun deleteForSeries(sid: Long)
+
+    @Query("DELETE FROM episode WHERE seriesId IN (SELECT id FROM series WHERE providerId = :pid)")
+    suspend fun deleteForProvider(pid: Long)
 }
 
 @Dao
@@ -178,6 +181,9 @@ interface FavoriteDao {
 
     @Query("DELETE FROM favorite WHERE providerId = :pid AND kind = :kind AND remoteId = :rid")
     suspend fun remove(pid: Long, kind: String, rid: String)
+
+    @Query("DELETE FROM favorite WHERE providerId = :pid")
+    suspend fun removeForProvider(pid: Long)
 }
 
 @Dao

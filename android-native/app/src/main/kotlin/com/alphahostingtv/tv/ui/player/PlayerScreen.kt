@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -557,7 +556,7 @@ fun PlayerScreen(url: String, title: String, onBack: () -> Unit, vm: PlayerViewM
                         color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp,
                     )
                 }
-                Text(currentUrl.substringBefore('?').takeLast(60), color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+                Text(redactStreamUrl(currentUrl), color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
             }
         }
         FlowRow(
@@ -857,4 +856,16 @@ private fun SleepOption(label: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.padding(vertical = 2.dp),
     ) { Text(label, fontSize = 13.sp) }
+}
+
+/** Strips user/pass from Xtream-style paths (/{live|movie|series}/user/pass/id)
+ *  and query-string credentials before showing the URL in the stats overlay. */
+private fun redactStreamUrl(url: String): String {
+    val noQuery = url.substringBefore('?')
+    // Xtream stream path: /<type>/<user>/<pass>/<id>.<ext>
+    val redacted = noQuery.replace(
+        Regex("/(live|movie|series)/[^/]+/[^/]+/"),
+        "/$1/***/***/",
+    )
+    return redacted.takeLast(60)
 }

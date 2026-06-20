@@ -196,6 +196,12 @@ class XtreamClient @Inject constructor(private val ok: OkHttpClient) {
                 }
                 val msg = parsed["message"]?.str()?.trim()
                 val err = parsed["error"]?.str()?.trim()
+                // Some Xtream panels return {} or {"user_info":{...}} for an empty
+                // catalog (e.g. live-only package with no VOD). If there are no
+                // error/message indicators, treat as an empty list rather than throwing.
+                if (err.isNullOrBlank() && msg.isNullOrBlank()) {
+                    return emptyList()
+                }
                 throw IllegalStateException(
                     when {
                         !err.isNullOrBlank() -> "Server error: $err"
