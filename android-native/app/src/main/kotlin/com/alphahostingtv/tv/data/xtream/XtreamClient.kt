@@ -247,7 +247,13 @@ class XtreamClient @Inject constructor(private val ok: OkHttpClient) {
 
     private suspend fun get(url: String): String = withContext(Dispatchers.IO) {
         ok.newCall(Request.Builder().url(url).build()).execute().use { resp ->
-            if (!resp.isSuccessful) error("HTTP ${resp.code} $url")
+            // Some Xtream panels (e.g. certain XUI builds) return 4xx for bad
+            // credentials instead of 200 with auth:0. Read the body anyway so
+            // ensureNotRejected() can surface a proper "Invalid password" message
+            // rather than a raw "HTTP 404" error.
+            if (!resp.isSuccessful && resp.code !in 400..499) {
+                error("HTTP ${resp.code} $url")
+            }
             resp.body?.string().orEmpty()
         }
     }

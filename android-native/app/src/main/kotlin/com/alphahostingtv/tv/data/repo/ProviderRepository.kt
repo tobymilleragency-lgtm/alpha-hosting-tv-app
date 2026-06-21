@@ -260,7 +260,8 @@ class ProviderRepository @Inject constructor(
         val withScheme = if (trimmed.matches(Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://"))) {
             trimmed
         } else {
-            "https://$trimmed"
+            // Xtream/Stalker panels almost always run plain HTTP; default to http://.
+            "http://$trimmed"
         }
 
         return runCatching { java.net.URI(withScheme) }
