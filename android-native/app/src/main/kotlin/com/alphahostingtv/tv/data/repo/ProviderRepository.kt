@@ -253,14 +253,32 @@ class ProviderRepository @Inject constructor(
         return runCatching { stalker.resolvePlayUrl(p, storedUrl) }.getOrElse { storedUrl }
     }
 
+    private fun normalizeBaseUrl(raw: String): String {
+        val trimmed = raw.trim().trimEnd('/')
+        if (trimmed.isBlank()) return ""
+
+        val withScheme = if (trimmed.matches(Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://"))) {
+            trimmed
+        } else {
+            "https://$trimmed"
+        }
+
+        return runCatching { java.net.URI(withScheme) }
+            .getOrNull()
+            ?.let { if (it.host.isNullOrBlank()) "" else withScheme }
+            ?: ""
+    }
+
     suspend fun addXtream(name: String, baseUrl: String, username: String, password: String): Long {
-        val normalised = baseUrl.trimEnd('/')
+        val normalised = normalizeBaseUrl(baseUrl)
+        check(normalised.isNotBlank()) { "Invalid server URL." }
         val displayName = name.ifBlank { runCatching { java.net.URI(normalised).host }.getOrNull() ?: "Xtream" }
         // Idempotent: if the (kind, baseUrl, username) tuple already exists,
         // refresh its credentials and reuse its id rather than creating a
         // duplicate row. This lets a customer correct a mistyped password.
-        providerDao.findByIdentity("XTREAM", normalised, username)?.let {
-            providerDao.upsert(it.copy(name = displayName, password = password))
+        val cleanUser = username.trim()
+        providerDao.findByIdentity("XTREAM", normalised, cleanUser)?.let {
+            providerDao.upsert(it.copy(name = displayName, password = password, username = cleanUser))
             return it.id
         }
         return providerDao.upsert(
@@ -268,7 +286,7 @@ class ProviderRepository @Inject constructor(
                 name = displayName,
                 kind = "XTREAM",
                 baseUrl = normalised,
-                username = username,
+                username = cleanUser,
                 password = password,
                 active = false,    // explicit default is set in Settings; see setDefault
             ),

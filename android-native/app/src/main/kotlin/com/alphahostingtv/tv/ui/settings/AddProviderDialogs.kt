@@ -159,7 +159,7 @@ fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, us
     var serverUrl by remember { mutableStateOf(AlphaProviderDefaults.XTREAM_SERVER_URL) }
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
-    val canSubmit = user.isNotBlank() && pass.isNotBlank() && serverUrl.isNotBlank()
+    val canSubmit = user.trim().isNotBlank() && pass.trim().isNotBlank() && serverUrl.trim().isNotBlank()
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     AddProviderDialog(
         title = S.addProviderXtreamTitle,
@@ -169,7 +169,7 @@ fun XtreamDialog(onDismiss: () -> Unit, onSubmit: (name: String, url: String, us
                 AlphaProviderDefaults.NAME,
                 serverUrl.trim().trimEnd('/'),
                 user.trim(),
-                pass,
+                pass.trim(),
             )
         },
         canSubmit = canSubmit,
