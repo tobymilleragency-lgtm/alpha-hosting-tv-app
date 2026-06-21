@@ -83,32 +83,11 @@ class OnboardingViewModel @Inject constructor(
     private val _completed = MutableStateFlow(false)
     val completed: StateFlow<Boolean> = _completed.asStateFlow()
 
-    private fun normalizeServerUrl(raw: String): String {
-        val trimmed = raw.trim().trimEnd('/')
-        if (trimmed.isBlank()) return ""
-
-        val withScheme = if (trimmed.matches(Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://"))) {
-            trimmed
-        } else {
-            "https://$trimmed"
-        }
-
-        return runCatching { java.net.URI(withScheme) }
-            .getOrNull()
-            ?.let { if (it.host.isNullOrBlank()) "" else withScheme }
-            ?: ""
-    }
-
-    fun addAlphaLogin(username: String, password: String, serverUrl: String) {
+    fun addAlphaLogin(username: String, password: String) {
         val cleanUser = username.trim()
         val cleanPass = password.trim()
-        val cleanUrl = normalizeServerUrl(serverUrl)
         if (cleanUser.isBlank() || cleanPass.isBlank()) {
             _message.value = "Enter your username and password."
-            return
-        }
-        if (cleanUrl.isBlank()) {
-            _message.value = "Enter a valid server URL (example: https://your-provider.tld)."
             return
         }
         if (_syncing.value) return
@@ -118,7 +97,7 @@ class OnboardingViewModel @Inject constructor(
             try {
                 val id = provider.addXtream(
                     name = AlphaProviderDefaults.NAME,
-                    baseUrl = cleanUrl,
+                    baseUrl = AlphaProviderDefaults.XTREAM_SERVER_URL,
                     username = cleanUser,
                     password = cleanPass,
                 )
@@ -138,9 +117,8 @@ class OnboardingViewModel @Inject constructor(
             } catch (t: Throwable) {
                 _message.value = when {
                     t is SecurityException -> "Login failed: ${t.message ?: "Invalid username or password."}"
-                    t is IllegalArgumentException -> "Server URL must include a valid domain (example: https://host/)."
                     t is SocketTimeoutException -> "Login timed out while reaching Alpha Hosting TV. Try again on a faster network."
-                    t is java.io.IOException -> "Could not reach Alpha Hosting TV server. Check internet or server URL."
+                    t is java.io.IOException -> "Could not reach Alpha Hosting TV server. Check your internet and try again."
                     else -> "Could not add login: ${t.message ?: t.javaClass.simpleName}"
                 }
             } finally {
@@ -170,8 +148,7 @@ fun OnboardingWizard(
     val S = com.alphahostingtv.tv.i18n.LocalStrings.current
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
-    var serverUrl by remember { mutableStateOf(AlphaProviderDefaults.XTREAM_SERVER_URL) }
-    val canSubmit = !syncing && user.trim().isNotBlank() && pass.trim().isNotBlank() && serverUrl.trim().isNotBlank()
+    val canSubmit = !syncing && user.trim().isNotBlank() && pass.trim().isNotBlank()
 
     androidx.compose.runtime.LaunchedEffect(completed) {
         if (completed) onLoginComplete()
@@ -260,16 +237,15 @@ fun OnboardingWizard(
                     color = UltraTokens.Fg,
                 )
                 Text(
-                    "Enter your server URL, username, and password.",
+                    "Enter the username and password from Alpha Hosting TV. The server is already configured.",
                     color = UltraTokens.Fg2,
                     fontSize = if (compact) 15.sp else 18.sp,
                     lineHeight = if (compact) 21.sp else 25.sp,
                 )
-                FormField("Server URL", serverUrl, { serverUrl = it }, autoFocus = false)
                 FormField(S.fieldUsername, user, { user = it }, autoFocus = !compact)
                 FormField(S.fieldPassword, pass, { pass = it }, password = true)
                 Button(
-                        onClick = { vm.addAlphaLogin(user, pass, serverUrl) },
+                        onClick = { vm.addAlphaLogin(user, pass) },
                         enabled = canSubmit,
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         colors = ButtonDefaults.colors(
